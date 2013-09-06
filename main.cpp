@@ -146,7 +146,7 @@ int main(int argc, char* argv[])
 	//lights.emplace_back(new extras::SpotLight{glm::vec3(0,5.0,0), glm::vec3(1), glm::vec3(0,0,0), 1.f, 5.f, 1.f, 45.f});
 	//glm::vec3 position, glm::vec3 color, glm::vec3 rotation, float power, float height, float radius, float falloff
 	
-	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(0,5.0,0), glm::vec3(0.3,0,0), glm::vec3(0,0,0), 10.f, 10.f, 24.f, 25.f};//static_cast<extras::SpotLight*>(lights[1].get());
+	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(0,5.0,0), glm::vec3(0.3,0,0), glm::vec3(0,0,0), 10.f, 10.f, 15.f, 25.f};//static_cast<extras::SpotLight*>(lights[1].get());
 
 	Program deferred_first_pass_shader(deferred_first_pass_vs,deferred_first_pass_fs);
 	Program framebuffer_texture_shader(framebuffer_texture_vs,framebuffer_texture_fs);
@@ -180,10 +180,10 @@ int main(int argc, char* argv[])
 		mat_view = glm::lookAt(cam_pos, glm::vec3(0,0,0), glm::vec3(0,1,0));
 		
 		//((extras::PointLight*)lights[0].get())->position.x = sinf(realFrame/50.f)*5.f;
-		//`((extras::SpotLight*)lights[0].get())->position.x = sinf(realFrame/50.f)*5.f;
+		//((extras::SpotLight*)lights[0].get())->position.x = sinf(realFrame/50.f)*5.f;
 		cam_pos.x = cosf(realFrame/300.f)*5.f;
-		//spot->rotation.z = sinf(realFrame/20.f)*30.f;
-		//spot->rotation.x = sinf(realFrame/80.f)*30.f;
+		spot->rotation.z = sinf(realFrame/20.f)*30.f;
+		spot->rotation.x = sinf(realFrame/80.f)*30.f;
 
         //first pass (draw information to the framebuffer)
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
@@ -267,6 +267,7 @@ int main(int argc, char* argv[])
 		//second pass: render geometry depth from the point of view of every shadow casting light
 		
 		glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
+		glCullFace(GL_FRONT);
 		
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, light_fbo);
         GLenum light_buffers[] = {GL_COLOR_ATTACHMENT0_EXT};
@@ -323,7 +324,7 @@ int main(int argc, char* argv[])
 		glEnable(GL_DEPTH_TEST);
 		glBlendFunc(GL_ONE, GL_ONE);
 		glDepthMask(GL_FALSE);
-		glCullFace(GL_FRONT);
+		//glCullFace(GL_FRONT);
 		glDepthFunc(GL_GEQUAL);
 		
 		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, fbo);
@@ -406,6 +407,14 @@ int main(int argc, char* argv[])
 			glActiveTexture(GL_TEXTURE4);
             glBindTexture(GL_TEXTURE_2D, imgs[4].id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_depth"),4);
+			
+			//The shader should receive the depth map from the prev pass and the mvp used
+			glActiveTexture(GL_TEXTURE5);
+            glBindTexture(GL_TEXTURE_2D, light_img.id);
+            glUniform1i(glGetUniformLocation(p->id(),"light_depth"),4);
+			
+			glUniformMatrix4fv(glGetUniformLocation(p->id(),"light_projection"), 1, GL_FALSE, glm::value_ptr(mat_light_projection));
+			glUniformMatrix4fv(glGetUniformLocation(p->id(),"light_view"), 1, GL_FALSE, glm::value_ptr(mat_light_view));
 			
 			glUniform3f(glGetUniformLocation(p->id(), "camera.position"), cam_pos.x, cam_pos.y, cam_pos.z);
 			

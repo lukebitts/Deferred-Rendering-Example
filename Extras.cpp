@@ -328,7 +328,7 @@ void extras::SpotLight::shader_constants(glm::mat4 view, glm::mat4 projection, P
 	mat_model = glm::rotate(mat_model, rotation.x, glm::vec3(1,0,0));
 	mat_model = glm::rotate(mat_model, rotation.y, glm::vec3(0,1,0));
 	mat_model = glm::rotate(mat_model, rotation.z, glm::vec3(0,0,1));
-	mat_model = glm::scale(mat_model, glm::vec3(radius*4+1,height,radius*4+1));
+	mat_model = glm::scale(mat_model, glm::vec3(height*tanf(falloff*3.14/180)+1,height,height*tanf(falloff*3.14/180)+1));
 	
 	if(p)
 	{
