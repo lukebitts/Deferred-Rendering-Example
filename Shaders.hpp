@@ -50,7 +50,7 @@ const char* deferred_first_pass_fs = R"(
     {
         gl_FragData[0] = texture2D(diffuse_map,f_texcoord);
         gl_FragData[1] = vec4(f_position,1.0);
-		
+
         vec3 normal_pixel = normalize(texture2D(normal_map, f_texcoord).rgb * 2.0 - 1.);
         normal_pixel.g *= -1.;
         vec3 normal = normalize(f_tbn * normal_pixel);

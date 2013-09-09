@@ -165,6 +165,12 @@ std::unique_ptr<Texture2D> extras::texture2d_from_file(const std::string& path)
 	return std::unique_ptr<Texture2D>(new Texture2D{0, GL_RGBA8,  w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)&image[0],{{GL_TEXTURE_MIN_FILTER,GL_LINEAR},{GL_TEXTURE_MAG_FILTER,GL_LINEAR}}});
 }
 
+std::unique_ptr<Texture2D> extras::texture2d_from_color(unsigned r, unsigned g, unsigned b, unsigned a)
+{
+    unsigned color[] = {r, g, b, a};
+	return std::unique_ptr<Texture2D>(new Texture2D{0, GL_RGBA8,  1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)&color[0],{{GL_TEXTURE_MIN_FILTER,GL_LINEAR},{GL_TEXTURE_MAG_FILTER,GL_LINEAR}}});
+}
+
 std::string extras::load_file(const std::string& path)
 {
 	std::ifstream in(path, std::ios::in | std::ios::binary);

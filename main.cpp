@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
 	GLuint light_fbo;
-	Texture2D light_img{0, GL_DEPTH_COMPONENT16,  800, 600, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}};
+	Texture2D light_img{0, GL_DEPTH_COMPONENT16,  800, 600, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR},{GL_TEXTURE_WRAP_S,GL_CLAMP}}};
 	Texture2D lightcolor_img{0, GL_RGB8,  800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}};
 	glGenFramebuffersEXT(1, &light_fbo);
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, light_fbo);
@@ -138,17 +138,21 @@ int main(int argc, char* argv[])
 	);
 
 	models.emplace_back(
+        //extras::uv_sphere(1.f/3.f,20,20),
 		extras::mesh_from_file("assets/models/dragon.obj"),
-		extras::texture2d_from_file("assets/textures/chesterfield_color.png"),
+		//extras::texture2d_from_file("assets/textures/chesterfield_color.png"),
+        extras::texture2d_from_color(255,0,0,255),
 		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+        //extras::texture2d_from_color(128,128,255,255),
 		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
 	);
-	models.back().scale = glm::vec3(3,3,3);
+	models.back().scale = glm::vec3(2,2,2);
+	//models.back().position.y = 2;
 
 	std::vector<std::unique_ptr<extras::IDeferredLight>> lights;
 
 	//lights.emplace_back(new extras::PointLight{glm::vec3(3,4,0),glm::vec3(1),200.f,10.f});
-	lights.emplace_back(new extras::PointLight{glm::vec3(-3,2,-5),glm::vec3(1.f,1.f,1.f),200.f,10.f});
+	//lights.emplace_back(new extras::PointLight{glm::vec3(-3,2,-5),glm::vec3(1.f,1.f,1.f),100.f,10.f});
 	//lights.emplace_back(new extras::SpotLight{glm::vec3(0,5.0,0), glm::vec3(1), glm::vec3(0,0,0), 1.f, 5.f, 1.f, 45.f});
 	//glm::vec3 position, glm::vec3 color, glm::vec3 rotation, float power, float height, float radius, float falloff
 
@@ -161,7 +165,7 @@ int main(int argc, char* argv[])
 
 	glm::mat4 mat_projection = glm::perspective(75.f, (float)800 / (float)600, 1.0f, 100.f);
 
-	glm::vec3 cam_pos{0,6,-6};
+	glm::vec3 cam_pos{0,3,-3};
 
 	int frame = 0;
 	int realFrame = 0;
@@ -188,8 +192,9 @@ int main(int argc, char* argv[])
 		//((extras::PointLight*)lights[0].get())->position.x = sinf(realFrame/50.f)*5.f;
 		//((extras::SpotLight*)lights[0].get())->position.x = sinf(realFrame/50.f)*5.f;
 		cam_pos.x = cosf(realFrame/300.f)*5.f;
-		spot->rotation.z = sinf(realFrame/20.f)*30.f;
-		spot->rotation.x = sinf(realFrame/80.f)*30.f;
+		//spot->rotation.z = sinf(realFrame/20.f)*30.f;
+		//spot->rotation.x = sinf(realFrame/20.f)*30.f;
+		//spot->position.x = sinf(realFrame/80.f)*3.f;
 
         //first pass (draw information to the framebuffer)
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
@@ -283,9 +288,9 @@ int main(int argc, char* argv[])
         glClear(GL_DEPTH_BUFFER_BIT);
 
 		glm::mat4 mat_light_view;
-		mat_light_view = glm::rotate(mat_light_view, spot->rotation.x + 90.f, glm::vec3(1.f,0.f,0.f));
-		mat_light_view = glm::rotate(mat_light_view, spot->rotation.y, glm::vec3(0.f,1.f,0.f));
-		mat_light_view = glm::rotate(mat_light_view, spot->rotation.z, glm::vec3(0.f,0.f,1.f));
+		mat_light_view = glm::rotate(mat_light_view, -spot->rotation.x + 90.f, glm::vec3(1.f,0.f,0.f));
+		mat_light_view = glm::rotate(mat_light_view, -spot->rotation.y, glm::vec3(0.f,1.f,0.f));
+		mat_light_view = glm::rotate(mat_light_view, -spot->rotation.z, glm::vec3(0.f,0.f,1.f));
 		mat_light_view = glm::translate(mat_light_view, -spot->position);
 
 		glm::mat4 mat_light_projection = glm::perspective(2*spot->falloff, (float)800 / (float)600, 1.0f, 100.f);
@@ -330,7 +335,7 @@ int main(int argc, char* argv[])
 		glEnable(GL_DEPTH_TEST);
 		glBlendFunc(GL_ONE, GL_ONE);
 		glDepthMask(GL_FALSE);
-		//glCullFace(GL_FRONT);
+		glCullFace(GL_FRONT);
 		glDepthFunc(GL_GEQUAL);
 
 		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, fbo);
@@ -416,7 +421,7 @@ int main(int argc, char* argv[])
 			//The shader should receive the depth map from the prev pass and the mvp used
 			glActiveTexture(GL_TEXTURE5);
             glBindTexture(GL_TEXTURE_2D, light_img.id);
-            glUniform1i(glGetUniformLocation(p->id(),"light.depth"),4);
+            glUniform1i(glGetUniformLocation(p->id(),"light.tex_depth"),5);
 
 			glUniformMatrix4fv(glGetUniformLocation(p->id(),"light.projection"), 1, GL_FALSE, glm::value_ptr(mat_light_projection));
 			glUniformMatrix4fv(glGetUniformLocation(p->id(),"light.view"), 1, GL_FALSE, glm::value_ptr(mat_light_view));
@@ -447,7 +452,7 @@ int main(int argc, char* argv[])
 		glDisable(GL_BLEND);
 		glDisable(GL_STENCIL_TEST);
 
-		//extras::drawTexturedQuadToScreen(glm::vec2(0,600), glm::vec2(400,300), light_img.id);
+		extras::drawTexturedQuadToScreen(glm::vec2(0,300), glm::vec2(200,150), light_img.id);
 		//extras::drawTexturedQuadToScreen(glm::vec2(400,600), glm::vec2(400,300), imgs[4].id);
 
         /*glm::mat4 mat_2d_projection = glm::ortho(0.f,800.f,600.f,0.f,0.1f,10.f);

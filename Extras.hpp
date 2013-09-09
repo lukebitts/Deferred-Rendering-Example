@@ -36,6 +36,7 @@ std::unique_ptr<Mesh> cone(float base_radius, unsigned base_quality, float apex_
 std::string load_file(const std::string& path);
 std::unique_ptr<Mesh> mesh_from_file(const std::string& path);
 std::unique_ptr<Texture2D> texture2d_from_file(const std::string& path);
+std::unique_ptr<Texture2D> texture2d_from_color(unsigned r, unsigned g, unsigned b, unsigned a);
 Program program_from_file(const std::string& path_vs,const std::string& path_fs);
 
 struct DeferredModel
