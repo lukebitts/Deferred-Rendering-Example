@@ -43,6 +43,8 @@
 #define glLinkProgram(...) DETECT_ERROR(glLinkProgram(__VA_ARGS__))
 #define glDeleteProgram(...) DETECT_ERROR(glDeleteProgram(__VA_ARGS__))
 #define glUniform1i(...) DETECT_ERROR(glUniform1i(__VA_ARGS__))
+#define glBlitFramebufferEXT(...) DETECT_ERROR(glBlitFramebufferEXT(__VA_ARGS__))
+
 
 
 #endif

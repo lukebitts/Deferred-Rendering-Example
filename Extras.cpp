@@ -1,20 +1,18 @@
 #include "Extras.hpp"
 
-#ifdef __APPLE__
-	#include <OpenGL/gl.h>
-#else
-	#include <GL/gl.h>
-#endif
-
 #include <vector>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <exception>
 
-#include <assimp/assimp.h>
+#include <assimp/scene.h>
+#include <assimp/cimport.h>
+#include <assimp/postprocess.h>
+
+/*#include <assimp/assimp.h>
 #include <assimp/aiScene.h>
-#include <assimp/aiPostProcess.h>
+#include <assimp/aiPostProcess.h>*/
 #include "lodepng/lodepng.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -152,7 +150,7 @@ std::unique_ptr<Mesh> extras::mesh_from_file(const std::string& path)
         indices.push_back(mesh->mFaces[i].mIndices[1]);
         indices.push_back(mesh->mFaces[i].mIndices[2]);
     }
-	
+
 	aiReleaseImport(scene);
 
     return std::unique_ptr<Mesh>(new Mesh(std::move(vertices), indices));
@@ -274,22 +272,22 @@ const std::unique_ptr<Mesh>& extras::PointLight::mesh()
 	return m;
 }
 
-void extras::PointLight::shader_constants(glm::mat4 view, glm::mat4 projection, Program* p) 
+void extras::PointLight::shader_constants(glm::mat4 view, glm::mat4 projection, Program* p)
 {
 	glm::mat4 mat_model(1.f);
 	mat_model = glm::translate(mat_model, position);
 	mat_model = glm::scale(mat_model, glm::vec3(max_distance));
-	
+
 	if(p)
 	{
 		glUseProgram(p->id());
 		glUniformMatrix4fv(glGetUniformLocation(p->id(),"model"), 1, GL_FALSE, glm::value_ptr(mat_model));
 		glUniformMatrix4fv(glGetUniformLocation(p->id(),"view"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(glGetUniformLocation(p->id(),"projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		
+
 		return;
 	}
-	
+
 	glUseProgram(program().id());
 	glUniformMatrix4fv(glGetUniformLocation(program().id(),"model"), 1, GL_FALSE, glm::value_ptr(mat_model));
 	glUniformMatrix4fv(glGetUniformLocation(program().id(),"view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -329,17 +327,17 @@ void extras::SpotLight::shader_constants(glm::mat4 view, glm::mat4 projection, P
 	mat_model = glm::rotate(mat_model, rotation.y, glm::vec3(0,1,0));
 	mat_model = glm::rotate(mat_model, rotation.z, glm::vec3(0,0,1));
 	mat_model = glm::scale(mat_model, glm::vec3(height*tanf(falloff*3.14/180)+1,height,height*tanf(falloff*3.14/180)+1));
-	
+
 	if(p)
 	{
 		glUseProgram(p->id());
 		glUniformMatrix4fv(glGetUniformLocation(p->id(),"model"), 1, GL_FALSE, glm::value_ptr(mat_model));
 		glUniformMatrix4fv(glGetUniformLocation(p->id(),"view"), 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(glGetUniformLocation(p->id(),"projection"), 1, GL_FALSE, glm::value_ptr(projection));
-		
+
 		return;
 	}
-	
+
 	glUseProgram(program().id());
 	glUniformMatrix4fv(glGetUniformLocation(program().id(),"model"), 1, GL_FALSE, glm::value_ptr(mat_model));
 	glUniformMatrix4fv(glGetUniformLocation(program().id(),"view"), 1, GL_FALSE, glm::value_ptr(view));

@@ -3,10 +3,19 @@
 
 #include <memory>
 #include <string>
+
+#define GL_GLEXT_PROTOTYPES
+
 #ifdef __APPLE__
 	#include <OpenGL/gl.h>
 #else
 	#include <GL/gl.h>
+#endif
+
+#ifdef __APPLE__
+	#include <OpenGL/glext.h>
+#else
+	#include <GL/glext.h>
 #endif
 
 class Mesh;
@@ -42,7 +51,7 @@ struct DeferredModel
 		glm::vec3 position = glm::vec3(), glm::quat rotation = glm::quat(), glm::vec3 scale = glm::vec3(1))
 		: position(position), rotation(rotation), scale(scale), mesh(std::move(mesh)), color(std::move(color)), normal(std::move(normal)), specular(std::move(specular))
 	{
-	
+
 	}
 };
 
@@ -87,7 +96,7 @@ struct SpotLight : public IDeferredLight
 };
 
 void drawTexturedQuadToScreen(glm::vec2 position, glm::vec2 size, GLuint tex_id);
-	
+
 }
 
 #endif // EXTRAS_H
