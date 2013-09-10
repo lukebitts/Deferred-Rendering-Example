@@ -30,8 +30,6 @@
 #include "Program.hpp"
 #include "Extras.hpp"
 
-#define DEBUG
-
 #include "GLErrors.hpp"
 
 template <typename T>
@@ -138,8 +136,8 @@ int main(int argc, char* argv[])
 	);
 
 	models.emplace_back(
-        //extras::uv_sphere(1.f/3.f,20,20),
-		extras::mesh_from_file("assets/models/dragon.obj"),
+        extras::uv_sphere(1.f/3.f,20,20),
+		//extras::mesh_from_file("assets/models/dragon.obj"),
 		//extras::texture2d_from_file("assets/textures/chesterfield_color.png"),
         extras::texture2d_from_color(255,0,0,255),
 		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
@@ -147,7 +145,7 @@ int main(int argc, char* argv[])
 		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
 	);
 	models.back().scale = glm::vec3(2,2,2);
-	//models.back().position.y = 2;
+	models.back().position.y = 1.5;
 
 	std::vector<std::unique_ptr<extras::IDeferredLight>> lights;
 
@@ -156,7 +154,7 @@ int main(int argc, char* argv[])
 	//lights.emplace_back(new extras::SpotLight{glm::vec3(0,5.0,0), glm::vec3(1), glm::vec3(0,0,0), 1.f, 5.f, 1.f, 45.f});
 	//glm::vec3 position, glm::vec3 color, glm::vec3 rotation, float power, float height, float radius, float falloff
 
-	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(0,5.0,0), glm::vec3(1,1,1), glm::vec3(0,0,0), 5.f, 10.f, 23.f, 25.f};//static_cast<extras::SpotLight*>(lights[1].get());
+	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(0,3.5,0), glm::vec3(1,1,1), glm::vec3(0,0,0), 2.f, 10.f, 60.f, 55.f};//static_cast<extras::SpotLight*>(lights[1].get());
 
 	Program deferred_first_pass_shader(deferred_first_pass_vs,deferred_first_pass_fs);
 	Program framebuffer_texture_shader(framebuffer_texture_vs,framebuffer_texture_fs);
@@ -293,7 +291,7 @@ int main(int argc, char* argv[])
 		mat_light_view = glm::rotate(mat_light_view, -spot->rotation.z, glm::vec3(0.f,0.f,1.f));
 		mat_light_view = glm::translate(mat_light_view, -spot->position);
 
-		glm::mat4 mat_light_projection = glm::perspective(2*spot->falloff, (float)800 / (float)600, 1.0f, 100.f);
+		glm::mat4 mat_light_projection = glm::perspective(2*spot->falloff, (float)800 / (float)800, 1.0f, 100.f);
 
 		for(auto&& model : models)
         {

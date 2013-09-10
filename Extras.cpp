@@ -31,7 +31,7 @@ std::unique_ptr<Mesh> extras::uv_sphere(float radius, unsigned int rings, unsign
 
 	float const R = 1./(float)(rings-1);
 	float const S = 1./(float)(sectors-1);
-	int r, s;
+	unsigned r, s;
 
 	vertices.resize(rings * sectors * 3);
 	normals.resize(rings * sectors * 3);
@@ -68,7 +68,7 @@ std::unique_ptr<Mesh> extras::uv_sphere(float radius, unsigned int rings, unsign
 	auto indices_copy = indices;
 	indices.clear();
 
-	for(int i = 0; i < indices_copy.size(); i+=4)
+	for(unsigned i = 0; i < indices_copy.size(); i+=4)
 	{
 		indices.push_back(indices_copy[i+2]);
 		indices.push_back(indices_copy[i+1]);
@@ -81,7 +81,7 @@ std::unique_ptr<Mesh> extras::uv_sphere(float radius, unsigned int rings, unsign
 
 	std::vector<Vertex> vcopy;
 	int j = 0;
-	for(int i = 0; i < vertices.size(); i+=3)
+	for(unsigned i = 0; i < vertices.size(); i+=3)
 	{
 		vcopy.push_back({vertices[i],vertices[i+1],vertices[i+2] , texcoords[j],texcoords[j+1] , normals[i],normals[i+1],normals[i+2] , 0,0,0 , 0,0,0});
 		j+=2;
@@ -113,7 +113,7 @@ std::unique_ptr<Mesh> extras::mesh_from_file(const std::string& path)
 
     if(mesh->HasPositions())
     {
-        for(int i = 0; i < mesh->mNumVertices; ++i)
+        for(unsigned i = 0; i < mesh->mNumVertices; ++i)
         {
             Vertex v{0,0,0,0,0,0,0,0,0,0,0,0,0,0};
             v.x = mesh->mVertices[i].x;
@@ -144,7 +144,7 @@ std::unique_ptr<Mesh> extras::mesh_from_file(const std::string& path)
         }
     }
 
-    for(int i = 0; i < mesh->mNumFaces; ++i)
+    for(unsigned i = 0; i < mesh->mNumFaces; ++i)
     {
         indices.push_back(mesh->mFaces[i].mIndices[0]);
         indices.push_back(mesh->mFaces[i].mIndices[1]);
@@ -162,7 +162,7 @@ std::unique_ptr<Texture2D> extras::texture2d_from_file(const std::string& path)
 	unsigned w, h;
 	unsigned error = lodepng::decode(image, w, h, path);
 	(void)error;
-	return std::unique_ptr<Texture2D>(new Texture2D{0, GL_RGBA8,  w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)&image[0],{{GL_TEXTURE_MIN_FILTER,GL_LINEAR},{GL_TEXTURE_MAG_FILTER,GL_LINEAR}}});
+	return std::unique_ptr<Texture2D>(new Texture2D{0, GL_RGBA8,  (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid*)&image[0],{{GL_TEXTURE_MIN_FILTER,GL_LINEAR},{GL_TEXTURE_MAG_FILTER,GL_LINEAR}}});
 }
 
 std::unique_ptr<Texture2D> extras::texture2d_from_color(unsigned r, unsigned g, unsigned b, unsigned a)
@@ -332,7 +332,7 @@ void extras::SpotLight::shader_constants(glm::mat4 view, glm::mat4 projection, P
 	mat_model = glm::rotate(mat_model, rotation.x, glm::vec3(1,0,0));
 	mat_model = glm::rotate(mat_model, rotation.y, glm::vec3(0,1,0));
 	mat_model = glm::rotate(mat_model, rotation.z, glm::vec3(0,0,1));
-	mat_model = glm::scale(mat_model, glm::vec3(height*tanf(falloff*3.14/180)+1,height,height*tanf(falloff*3.14/180)+1));
+	mat_model = glm::scale(mat_model, glm::vec3(height*tanf(radius*3.14/180)+1,height,height*tanf(radius*3.14/180)+1));
 
 	if(p)
 	{

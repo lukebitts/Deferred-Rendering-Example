@@ -59,7 +59,7 @@ void main(void)
 	float spot_alpha = dot(-l,normalize(model3x3 * vec3(0,-1,0)));
 	float inner_alpha = cos(light.falloff);
 	float outer_alpha = cos(light.radius);
-	float spot = 1 - clamp((spot_alpha - outer_alpha) / (inner_alpha - outer_alpha), 0., 1.);
+	float spot = clamp((spot_alpha - outer_alpha) / (inner_alpha - outer_alpha), 0., 1.);
 
 	vec4 diffuse = frag_color * vec4(light.color, 1.) * light.power * lambert * spot;
 	vec4 specular = frag_specular * vec4(light.color, 1.) * phong * spot;
@@ -73,5 +73,4 @@ void main(void)
         gl_FragColor = vec4(0);
     else
         gl_FragColor = (diffuse + specular);
-    //gl_FragColor = vec4(frag_normal,1);
 }
