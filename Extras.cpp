@@ -6,13 +6,13 @@
 #include <fstream>
 #include <exception>
 
-#include <assimp/scene.h>
+/*#include <assimp/scene.h>
 #include <assimp/cimport.h>
-#include <assimp/postprocess.h>
+#include <assimp/postprocess.h>*/
 
-/*#include <assimp/assimp.h>
+#include <assimp/assimp.h>
 #include <assimp/aiScene.h>
-#include <assimp/aiPostProcess.h>*/
+#include <assimp/aiPostProcess.h>
 #include "lodepng/lodepng.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -189,7 +189,7 @@ Program extras::program_from_file(const std::string& path_vs, const std::string&
 	return Program{load_file(path_vs).c_str(),load_file(path_fs).c_str()};
 }
 
-void extras::drawTexturedQuadToScreen(glm::vec2 position, glm::vec2 size, GLuint tex_id)
+void extras::drawTexturedQuadToScreen(glm::vec2 position, glm::vec2 size, glm::vec2 win_size, GLuint tex_id)
 {
 	static Program* framebuffer_texture_shader = new Program(R"(
 		#version 120
@@ -220,7 +220,7 @@ void extras::drawTexturedQuadToScreen(glm::vec2 position, glm::vec2 size, GLuint
 	)");
 	static std::unique_ptr<Mesh> fbo_mesh = extras::plane(1,1);
 
-	glm::mat4 mat_2d_projection = glm::ortho(0.f,800.f,0.f,600.f,0.1f,10.f);
+	glm::mat4 mat_2d_projection = glm::ortho(0.f,win_size.x,0.f,win_size.y,0.1f,10.f);
 	glm::mat4 mat_2d_view = glm::lookAt(glm::vec3(0,0,-1), glm::vec3(0,0,1), glm::vec3(0,1,0));
 
 	glm::mat4 mat_model(1.f);
@@ -266,19 +266,19 @@ extras::PointLight::PointLight(glm::vec3 position, glm::vec3 color, float power,
 
 }
 
-const Program& extras::PointLight::program()
+const Program& extras::PointLight::program() const
 {
 	static const Program p = extras::program_from_file("assets/shaders/deferred_point_light.vs.glsl", "assets/shaders/deferred_point_light.fs.glsl");
 	return p;
 }
 
-const std::unique_ptr<Mesh>& extras::PointLight::mesh()
+const std::unique_ptr<Mesh>& extras::PointLight::mesh() const
 {
 	static const std::unique_ptr<Mesh> m = extras::mesh_from_file("assets/models/sphere.obj");
 	return m;
 }
 
-void extras::PointLight::shader_constants(glm::mat4 view, glm::mat4 projection, Program* p)
+void extras::PointLight::shader_constants(glm::mat4 view, glm::mat4 projection, Program* p) const
 {
 	glm::mat4 mat_model(1.f);
 	mat_model = glm::translate(mat_model, position);
@@ -313,19 +313,19 @@ extras::SpotLight::SpotLight(glm::vec3 position, glm::vec3 color, glm::vec3 rota
 
 }
 
-const Program& extras::SpotLight::program()
+const Program& extras::SpotLight::program() const
 {
 	static const Program p = extras::program_from_file("assets/shaders/deferred_spot_light.vs.glsl", "assets/shaders/deferred_spot_light.fs.glsl");
 	return p;
 }
 
-const std::unique_ptr<Mesh>& extras::SpotLight::mesh()
+const std::unique_ptr<Mesh>& extras::SpotLight::mesh() const
 {
 	static const std::unique_ptr<Mesh> m = extras::mesh_from_file("assets/models/cone.obj");
 	return m;
 }
 
-void extras::SpotLight::shader_constants(glm::mat4 view, glm::mat4 projection, Program* p)
+void extras::SpotLight::shader_constants(glm::mat4 view, glm::mat4 projection, Program* p) const
 {
 	glm::mat4 mat_model(1.f);
 	mat_model = glm::translate(mat_model, position);

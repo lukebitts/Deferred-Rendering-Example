@@ -44,8 +44,7 @@ void main(void)
     float C = 1.;
     float L = 4.5/light.max_distance;
     float Q = 75./pow(light.max_distance,2.);
-
-    //float attenuation = 1./(C + (L*frag_distance) + (Q*pow(frag_distance,2.)));
+	
     float attenuation = C / ((1.+L*frag_distance)*(1.+Q*frag_distance*frag_distance));
     attenuation = max(attenuation - 0.002,0.);
 

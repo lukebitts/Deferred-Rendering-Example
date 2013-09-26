@@ -16,7 +16,7 @@
 #define DETECT_ERROR_AND_CORRECT(CODE) { int err; CODE, ((err = glGetError()) != 0) ? (std::cout<<err<<" ("<<__FILE__<<" "<<__LINE__<<")"<<std::endl) : std::cout<<"0 "<<__FILE__<<" "<<__LINE__<<std::endl; }
 #define DETECT_ERROR(CODE) { int err; CODE, ((err = glGetError()) != 0) ? (std::cout<<err<<" ("<<__FILE__<<" "<<__LINE__<<")"<<std::endl) : std::cout<<""; }
 
-#define glGenRenderbuffersEXT(...) DETECT_ERROR(glGenRenderbuffersEXT(__VA_ARGS__))
+/*#define glGenRenderbuffersEXT(...) DETECT_ERROR(glGenRenderbuffersEXT(__VA_ARGS__))
 #define glBindFramebufferEXT(...) DETECT_ERROR(glBindFramebufferEXT(__VA_ARGS__))
 #define glBindRenderbufferEXT(...) DETECT_ERROR(glBindRenderbufferEXT(__VA_ARGS__))
 #define glRenderbufferStorageEXT(...) DETECT_ERROR(glRenderbufferStorageEXT(__VA_ARGS__))
@@ -43,7 +43,7 @@
 #define glLinkProgram(...) DETECT_ERROR(glLinkProgram(__VA_ARGS__))
 #define glDeleteProgram(...) DETECT_ERROR(glDeleteProgram(__VA_ARGS__))
 #define glUniform1i(...) DETECT_ERROR(glUniform1i(__VA_ARGS__))
-#define glBlitFramebufferEXT(...) DETECT_ERROR(glBlitFramebufferEXT(__VA_ARGS__))
+#define glBlitFramebufferEXT(...) DETECT_ERROR(glBlitFramebufferEXT(__VA_ARGS__))*/
 
 
 

@@ -18,11 +18,14 @@
 #include <initializer_list>
 #include <utility>
 
-///@todo create copy and move operations
 struct Texture2D
 {
-	Texture2D(GLint level, GLint internalFormat, GLsizei width, GLsizei height,	GLint border, GLenum format, GLenum type, const GLvoid * data, std::initializer_list<std::pair<GLenum,GLint>> parametersi);
+	Texture2D(GLint level, GLint internalFormat, GLsizei width, GLsizei height,	GLint border, GLenum format, GLenum type, const GLvoid * data, std::initializer_list<std::pair<GLenum,GLint>> parametersi = {});
 	~Texture2D();
+	Texture2D(const Texture2D&) = delete;
+	Texture2D& operator=(const Texture2D&) = delete;
+	Texture2D(Texture2D&&);
+	Texture2D& operator=(Texture2D&&);
 	GLuint id;
 };
 

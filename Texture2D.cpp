@@ -11,7 +11,7 @@
 #include "GLErrors.hpp"
 
 Texture2D::Texture2D(GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid * data,
-	std::initializer_list<std::pair<GLenum,GLint>> parametersi = {}) : id(0)
+	std::initializer_list<std::pair<GLenum,GLint>> parametersi) : id(0)
 {
 	glGenTextures(1, &id);
 	glBindTexture(GL_TEXTURE_2D, id);
@@ -22,6 +22,20 @@ Texture2D::Texture2D(GLint level, GLint internalFormat, GLsizei width, GLsizei h
 	glTexImage2D(GL_TEXTURE_2D, level, internalFormat, width, height, border, format, type, data);
 	
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+Texture2D::Texture2D(Texture2D&& other)
+{
+	this->id = other.id;
+	other.id = 0;
+}
+
+Texture2D& Texture2D::operator=(Texture2D&& other)
+{
+	this->id = other.id;
+	other.id = 0;
+	
+	return *this;
 }
 
 Texture2D::~Texture2D()

@@ -6,6 +6,9 @@
 //  Copyright (c) 2013 Lucas Bittencourt. All rights reserved.
 //
 
+const int WIN_W = 1024;
+const int WIN_H = 768;
+
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glfw.h>
 
@@ -26,6 +29,7 @@
 #include "Mesh.hpp"
 #include "Vertex.hpp"
 #include "Texture2D.hpp"
+#include "Framebuffer.hpp"
 #include "Shaders.hpp"
 #include "Program.hpp"
 #include "Extras.hpp"
@@ -41,16 +45,31 @@ constexpr T degToRad(T deg)
 
 bool wireframe = false;
 
+glm::vec3 cam_pos = glm::vec3( 0, 5, 5 );
+float initialFoV = 45.0f;
+
+float speed = 3.0f;
+float mouseSpeed = 0.005f;
+
+float horizontalAngle = 3.14f;
+float verticalAngle = 0.0f;
+
+void RenderModelList(const std::vector<extras::DeferredModel>& meshList);
+//void RenderLightsForShadowPoV(const std::vector<extras::IShadowCaster>& castersList);
+void RenderDeferredLightPass(const std::vector<extras::IDeferredLight>& lightList);
+
+void computeMatricesFromInputs(glm::mat4& ProjectionMatrix, glm::mat4& ViewMatrix);
+
 int main(int argc, char* argv[])
 {
 	glfwInit();
 	glfwOpenWindowHint(GLFW_VERSION_MINOR, 2);
 	glfwOpenWindowHint(GLFW_VERSION_MAJOR, 1);
 	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 0);
-	glfwOpenWindow(800, 600, 0, 0, 0, 0, 16, 8, GLFW_WINDOW);
+	glfwOpenWindow(WIN_W, WIN_H, 0, 0, 0, 0, 24, 8, GLFW_WINDOW);
 	glfwSwapInterval(1);
 
-	//glfwSetWindowPos(2000, 100);
+	glfwSetWindowPos(2000, 0);
 
 	glfwSetKeyCallback([](int key, int press) -> void {
 		extern bool wireframe;
@@ -58,57 +77,23 @@ int main(int argc, char* argv[])
 		if(key == 'W' && press)
 			wireframe = !wireframe;
 	});
-
-	/*******/
-    ///@todo find an alternative to the framebuffers extension when it's not available
-	///@todo cleanup the framebuffer
-
-	GLuint fbo;
-	Texture2D imgs[5] = {
-		{0, GL_RGBA8,  800, 600, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}},
-		{0, GL_RGBA32F_ARB,  800, 600, 0, GL_RGBA, GL_FLOAT, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}},
-		{0, GL_RGBA16F_ARB,  800, 600, 0, GL_RGBA, GL_FLOAT, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}},
-		{0, GL_RGB8,  800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}},
+	
+	Framebuffer first_pass_fbo{
+		{GL_COLOR_ATTACHMENT0_EXT, Texture2D{0, GL_RGBA8,  WIN_W, WIN_H, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}},
+		{GL_COLOR_ATTACHMENT1_EXT, Texture2D{0, GL_RGBA32F_ARB,  WIN_W, WIN_H, 0, GL_RGBA, GL_FLOAT, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}},
+		{GL_COLOR_ATTACHMENT2_EXT, Texture2D{0, GL_RGBA16F_ARB,  WIN_W, WIN_H, 0, GL_RGBA, GL_FLOAT, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}},
+		{GL_COLOR_ATTACHMENT3_EXT, Texture2D{0, GL_RGB8,  WIN_W, WIN_H, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}},
 		///@todo check if this format matches the default buffer format
-		{0, GL_DEPTH24_STENCIL8,  800, 600, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}
+		{GL_DEPTH_ATTACHMENT_EXT, Texture2D{0, GL_DEPTH24_STENCIL8,  WIN_W, WIN_H, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}}
 	};
-	glGenFramebuffersEXT(1, &fbo);
-
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
-
-    {
-        GLuint buffer;
-        glGenRenderbuffersEXT(1, &buffer);
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, buffer);
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, 800, 600);
-
-        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, buffer);
-
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, imgs[0].id, 0);
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_2D, imgs[1].id, 0);
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT2_EXT, GL_TEXTURE_2D, imgs[2].id, 0);
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT3_EXT, GL_TEXTURE_2D, imgs[3].id, 0);
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT , GL_TEXTURE_2D, imgs[4].id, 0);
-
-        if(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT)
-            return 1;
-    }
-
-    glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0);
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
 	GLuint light_fbo;
-	Texture2D light_img{0, GL_DEPTH_COMPONENT16,  800, 600, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR},{GL_TEXTURE_WRAP_S,GL_CLAMP}}};
-	Texture2D lightcolor_img{0, GL_RGB8,  800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}};
+	Texture2D light_img{0, GL_DEPTH_COMPONENT16,  WIN_W, WIN_H, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR},{GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE},{GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE}}};
+	Texture2D lightcolor_img{0, GL_RGB8,  WIN_W, WIN_H, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}};
 	glGenFramebuffersEXT(1, &light_fbo);
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, light_fbo);
 
     {
-        GLuint buffer;
-        glGenRenderbuffersEXT(1, &buffer);
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, buffer);
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, 800, 600);
-
 		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, lightcolor_img.id, 0);
         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT , GL_TEXTURE_2D, light_img.id, 0);
 
@@ -127,15 +112,94 @@ int main(int argc, char* argv[])
 	/*******/
 
 	std::vector<extras::DeferredModel> models;
-
+	
 	models.emplace_back(
-		extras::mesh_from_file("assets/models/chesterfield.obj"),
-		extras::texture2d_from_file("assets/textures/chesterfield_color.png"),
+		extras::mesh_from_file("assets/models/scene/brick.obj"),
+		extras::texture2d_from_file("assets/textures/scene/brick_color.png"),
+		extras::texture2d_from_file("assets/textures/flat_normal.png"),
+		//extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/brick2.obj"),
+		extras::texture2d_from_file("assets/textures/scene/brick_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/concrete.obj"),
+		extras::texture2d_from_file("assets/textures/scene/concrete_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/concrete2.obj"),
+		extras::texture2d_from_file("assets/textures/scene/concrete_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/concrete3.obj"),
+		extras::texture2d_from_file("assets/textures/scene/concrete_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/concrete4.obj"),
+		extras::texture2d_from_file("assets/textures/scene/concrete_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/detail.obj"),
+		extras::texture2d_from_file("assets/textures/scene/detail_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/detail2.obj"),
+		extras::texture2d_from_file("assets/textures/scene/detail_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/floor.obj"),
+		extras::texture2d_from_file("assets/textures/scene/floor_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_color(0, 0, 0, 0)
+	);
+	/*models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/grass1.obj"),
+		extras::texture2d_from_file("assets/textures/scene/grass1_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/grass2.obj"),
+		extras::texture2d_from_file("assets/textures/scene/grass2_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);*/
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/metal.obj"),
+		extras::texture2d_from_file("assets/textures/scene/metal_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/wood.obj"),
+		extras::texture2d_from_file("assets/textures/scene/wood_color.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+	);
+	models.emplace_back(
+		extras::mesh_from_file("assets/models/scene/wood2.obj"),
+		extras::texture2d_from_file("assets/textures/scene/wood_color.png"),
 		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
 		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
 	);
 
-	models.emplace_back(
+	/*models.emplace_back(
         extras::uv_sphere(1.f/3.f,20,20),
 		//extras::mesh_from_file("assets/models/dragon.obj"),
 		//extras::texture2d_from_file("assets/textures/chesterfield_color.png"),
@@ -145,26 +209,25 @@ int main(int argc, char* argv[])
 		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
 	);
 	models.back().scale = glm::vec3(2,2,2);
-	models.back().position.y = 1.5;
+	models.back().position.y = 1.5;*/
 
 	std::vector<std::unique_ptr<extras::IDeferredLight>> lights;
 
-	//lights.emplace_back(new extras::PointLight{glm::vec3(3,4,0),glm::vec3(1),200.f,10.f});
-	//lights.emplace_back(new extras::PointLight{glm::vec3(-3,2,-5),glm::vec3(1.f,1.f,1.f),100.f,10.f});
+	//lights.emplace_back(new extras::PointLight{glm::vec3(3,4,0),glm::vec3(1),100.f,10.f});
+	//lights.emplace_back(new extras::PointLight{glm::vec3(-3,2,-5),glm::vec3(1.f,1.f,1.f),100.f,20.f});
 	//lights.emplace_back(new extras::SpotLight{glm::vec3(0,5.0,0), glm::vec3(1), glm::vec3(0,0,0), 1.f, 5.f, 1.f, 45.f});
 	//glm::vec3 position, glm::vec3 color, glm::vec3 rotation, float power, float height, float radius, float falloff
 
-	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(0,3.5,0), glm::vec3(1,1,1), glm::vec3(0,0,0), 2.f, 10.f, 60.f, 55.f};//static_cast<extras::SpotLight*>(lights[1].get());
+	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(-3.f,6.5,0), glm::vec3(1,1,1), glm::vec3(0,0,20.f), 2.f, 45.f, 35.f, 32.f};
 
 	Program deferred_first_pass_shader(deferred_first_pass_vs,deferred_first_pass_fs);
 	Program framebuffer_texture_shader(framebuffer_texture_vs,framebuffer_texture_fs);
 	Program wireframe_shader(wireframe_vs,wireframe_fs);
 	Program depth_shader(depth_vs,depth_fs);
 
-	glm::mat4 mat_projection = glm::perspective(75.f, (float)800 / (float)600, 1.0f, 100.f);
-
-	glm::vec3 cam_pos{0,3,-3};
-
+	glm::mat4 mat_projection = glm::perspective(75.f, (float)WIN_W / (float)WIN_H, 0.1f, 100.f);
+	glm::mat4 mat_view(1);
+	
 	int frame = 0;
 	int realFrame = 0;
 	double accum = 0;
@@ -184,18 +247,18 @@ int main(int argc, char* argv[])
 
 		glfwPollEvents();
 
-		glm::mat4 mat_view(1);
-		mat_view = glm::lookAt(cam_pos, glm::vec3(0,0,0), glm::vec3(0,1,0));
+		computeMatricesFromInputs(mat_projection, mat_view);
 
 		//((extras::PointLight*)lights[0].get())->position.x = sinf(realFrame/50.f)*5.f;
 		//((extras::SpotLight*)lights[0].get())->position.x = sinf(realFrame/50.f)*5.f;
-		cam_pos.x = cosf(realFrame/300.f)*5.f;
+		//cam_pos.x = cosf(realFrame/300.f)*5.f;
 		//spot->rotation.z = sinf(realFrame/20.f)*30.f;
 		//spot->rotation.x = sinf(realFrame/20.f)*30.f;
 		//spot->position.x = sinf(realFrame/80.f)*3.f;
+		//models.back().position.y = sinf(realFrame/20.f)*1.0f+1.0f;
 
         //first pass (draw information to the framebuffer)
-        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, first_pass_fbo.id());
         GLenum buffers[] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_COLOR_ATTACHMENT2_EXT, GL_COLOR_ATTACHMENT3_EXT};
         glDrawBuffers(4,buffers);
 
@@ -291,7 +354,7 @@ int main(int argc, char* argv[])
 		mat_light_view = glm::rotate(mat_light_view, -spot->rotation.z, glm::vec3(0.f,0.f,1.f));
 		mat_light_view = glm::translate(mat_light_view, -spot->position);
 
-		glm::mat4 mat_light_projection = glm::perspective(2*spot->falloff, (float)800 / (float)800, 1.0f, 100.f);
+		glm::mat4 mat_light_projection = glm::perspective(2*spot->radius, (float)WIN_W / (float)WIN_H, 1.0f, 100.f);
 
 		for(auto&& model : models)
         {
@@ -336,9 +399,9 @@ int main(int argc, char* argv[])
 		glCullFace(GL_FRONT);
 		glDepthFunc(GL_GEQUAL);
 
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, fbo);
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, first_pass_fbo.id());
 		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
-		glBlitFramebufferEXT(0, 0, 800, 600, 0, 0, 800, 600, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		glBlitFramebufferEXT(0, 0, WIN_W, WIN_H, 0, 0, WIN_W, WIN_H, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
 		for(auto&& light : lights)
 		{
@@ -347,27 +410,27 @@ int main(int argc, char* argv[])
 
 			light->shader_constants(mat_view, mat_projection);
 
-			glUniform1i(glGetUniformLocation(p->id(), "window_width"),800);
-			glUniform1i(glGetUniformLocation(p->id(), "window_height"),600);
+			glUniform1i(glGetUniformLocation(p->id(), "window_width"),WIN_W);
+			glUniform1i(glGetUniformLocation(p->id(), "window_height"),WIN_H);
 
 			glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, imgs[0].id);
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(0).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_color"),0);
 
 			glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, imgs[1].id);
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(1).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_position"),1);
 
 			glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, imgs[2].id);
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(2).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_normal"),2);
 
 			glActiveTexture(GL_TEXTURE3);
-            glBindTexture(GL_TEXTURE_2D, imgs[3].id);
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(3).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_specular"),3);
 
 			glActiveTexture(GL_TEXTURE4);
-            glBindTexture(GL_TEXTURE_2D, imgs[4].id);
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(4).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_depth"),4);
 
 			glUniform3f(glGetUniformLocation(p->id(), "camera.position"), cam_pos.x, cam_pos.y, cam_pos.z);
@@ -393,27 +456,27 @@ int main(int argc, char* argv[])
 
 			spot->shader_constants(mat_view, mat_projection);
 
-			glUniform1i(glGetUniformLocation(p->id(), "window_width"),800);
-			glUniform1i(glGetUniformLocation(p->id(), "window_height"),600);
+			glUniform1i(glGetUniformLocation(p->id(), "window_width"),WIN_W);
+			glUniform1i(glGetUniformLocation(p->id(), "window_height"),WIN_H);
 
 			glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, imgs[0].id);
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(0).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_color"),0);
 
 			glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, imgs[1].id);
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(1).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_position"),1);
 
 			glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, imgs[2].id);
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(2).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_normal"),2);
 
 			glActiveTexture(GL_TEXTURE3);
-            glBindTexture(GL_TEXTURE_2D, imgs[3].id);
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(3).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_specular"),3);
 
 			glActiveTexture(GL_TEXTURE4);
-            glBindTexture(GL_TEXTURE_2D, imgs[4].id);
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(4).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_depth"),4);
 
 			//The shader should receive the depth map from the prev pass and the mvp used
@@ -450,47 +513,8 @@ int main(int argc, char* argv[])
 		glDisable(GL_BLEND);
 		glDisable(GL_STENCIL_TEST);
 
-		extras::drawTexturedQuadToScreen(glm::vec2(0,300), glm::vec2(200,150), light_img.id);
+		extras::drawTexturedQuadToScreen(glm::vec2(0,150), glm::vec2(200,150), glm::vec2(WIN_W,WIN_H), light_img.id);
 		//extras::drawTexturedQuadToScreen(glm::vec2(400,600), glm::vec2(400,300), imgs[4].id);
-
-        /*glm::mat4 mat_2d_projection = glm::ortho(0.f,800.f,600.f,0.f,0.1f,10.f);
-        glm::mat4 mat_2d_view = glm::lookAt(glm::vec3(0,0,-1), glm::vec3(0,0,1), glm::vec3(0,1,0));
-
-        for(int tex = 0; tex < 5; ++tex) {
-            glm::mat4 mat_model(1.f);
-            glm::vec3 fbo_mesh_position((tex)*-800/4.f,50.f,0.f);
-            mat_model = glm::translate(mat_model,fbo_mesh_position);
-            mat_model = glm::scale(mat_model, glm::vec3(800/8,600/8,0));
-
-            Program* p = &framebuffer_texture_shader;
-
-            glUseProgram(p->id());
-
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, imgs[tex].id);
-            glUniform1i(glGetUniformLocation(p->id(),"albedo"),0);
-
-            glUniformMatrix4fv(glGetUniformLocation(p->id(),"model"), 1, GL_FALSE, glm::value_ptr(mat_model));
-            glUniformMatrix4fv(glGetUniformLocation(p->id(),"view"), 1, GL_FALSE, glm::value_ptr(mat_2d_view));
-            glUniformMatrix4fv(glGetUniformLocation(p->id(),"projection"), 1, GL_FALSE, glm::value_ptr(mat_2d_projection));
-
-            glEnableVertexAttribArray(glGetAttribLocation(p->id(), "position"));
-            glBindBuffer(GL_ARRAY_BUFFER, fbo_mesh->buffers[Mesh::BufferType::VERTEX]);
-            glVertexAttribPointer(glGetAttribLocation(p->id(), "position"),3,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)offsetof(Vertex, x));
-
-            glEnableVertexAttribArray(glGetAttribLocation(p->id(), "texcoord"));
-            glBindBuffer(GL_ARRAY_BUFFER, fbo_mesh->buffers[Mesh::BufferType::VERTEX]);
-            glVertexAttribPointer(glGetAttribLocation(p->id(), "texcoord"),2,GL_FLOAT,GL_FALSE,sizeof(Vertex),(void*)offsetof(Vertex, u));
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, fbo_mesh->buffers[Mesh::BufferType::ELEMENT]);
-            glDrawElements(GL_TRIANGLES, fbo_mesh->element_number, GL_UNSIGNED_INT, (void*)0);
-
-            glDisableVertexAttribArray(glGetAttribLocation(p->id(), "position"));
-            glDisableVertexAttribArray(glGetAttribLocation(p->id(), "texcoord"));
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-            glUseProgram(0);
-        }*/
 
         //fifth pass (geometry edges)
 		if(wireframe)
@@ -573,4 +597,51 @@ int main(int argc, char* argv[])
 	glfwTerminate();
 
     return 0;
+}
+
+int oldx = 400;
+
+void computeMatricesFromInputs(glm::mat4& ProjectionMatrix, glm::mat4& ViewMatrix){
+        static double lastTime = glfwGetTime();
+		
+        double currentTime = glfwGetTime();
+        float deltaTime = float(currentTime - lastTime);
+
+        int xpos, ypos;
+        glfwGetMousePos(&xpos, &ypos);
+
+        horizontalAngle = mouseSpeed * float((float)WIN_W/2 - xpos);
+        verticalAngle = mouseSpeed * float((float)WIN_H/2 - ypos);
+		
+		//glfwSetMousePos(800/2, 600/2);
+		
+        glm::vec3 direction(
+                cosf(verticalAngle) * sinf(horizontalAngle),
+                sinf(verticalAngle),
+                cosf(verticalAngle) * cosf(horizontalAngle)
+        );
+    
+        glm::vec3 right = glm::vec3(sin(horizontalAngle - 3.14f/2.0f), 0, cos(horizontalAngle - 3.14f/2.0f));
+        glm::vec3 up = glm::cross(right, direction);
+
+        if (glfwGetKey( GLFW_KEY_UP ) == GLFW_PRESS){
+                cam_pos += direction * deltaTime * speed;
+        }
+        if (glfwGetKey( GLFW_KEY_DOWN ) == GLFW_PRESS){
+                cam_pos -= direction * deltaTime * speed;
+        }
+        if (glfwGetKey( GLFW_KEY_RIGHT ) == GLFW_PRESS){
+                cam_pos += right * deltaTime * speed;
+        }
+        if (glfwGetKey( GLFW_KEY_LEFT ) == GLFW_PRESS){
+                cam_pos -= right * deltaTime * speed;
+        }
+
+        float FoV = initialFoV - 5 * ((float)glfwGetMouseWheel() * 0.2);
+
+        ProjectionMatrix = glm::perspective(FoV, 4.0f / 3.0f, 0.1f, 100.0f);
+        ViewMatrix = glm::lookAt(cam_pos, cam_pos+direction, up);
+
+        // For the next frame, the "last time" will be "now"
+        lastTime = currentTime;
 }

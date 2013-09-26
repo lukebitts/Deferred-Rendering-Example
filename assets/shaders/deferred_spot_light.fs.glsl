@@ -31,13 +31,6 @@ uniform struct Camera
 uniform mat4 model;
 mat3 model3x3 = mat3(model);
 
-vec2 poissonDisk[4] = vec2[](
-  vec2( -0.94201624, -0.39906216 ),
-  vec2( 0.94558609, -0.76890725 ),
-  vec2( -0.094184101, -0.92938870 ),
-  vec2( 0.34495938, 0.29387760 )
-);
-
 void main(void)
 {
 	vec2 screen_coordinates = gl_FragCoord.xy / vec2(window_width,window_height);
@@ -50,7 +43,7 @@ void main(void)
 
 	vec3 n = normalize(frag_normal);
     vec3 l = normalize(light.position - frag_position.xyz);
-    float lambert = max(dot(n,l),0.);
+    float lambert = clamp(dot(n,l),0,1);
 
 	vec3 r = normalize(reflect(light.position - frag_position.xyz, frag_normal));
     vec3 v = normalize(camera.position - frag_position.xyz);
@@ -66,11 +59,20 @@ void main(void)
 
     vec4 frag_shadow_position = light.projection * light.view * frag_position;
     frag_shadow_position = frag_shadow_position / frag_shadow_position.w / 2.f + 0.5f;
+	
+	float frag_distance = length(light.position - frag_position.xyz);
+	float C = 1.;
+    float L = 4.5/light.height;
+    float Q = 75./pow(light.height,2.);
 
-    float bias = clamp(0.005*tan(acos(clamp(dot(n,l),0,1))),0,0.01);
+	float attenuation = C / ((1.+L*frag_distance)*(1.+Q*frag_distance*frag_distance));
+    attenuation = max(attenuation - 0.002,0.);
+	attenuation *= light.power;
+
+    float bias = 0;//clamp(0.005*tan(acos(clamp(dot(n,l),0,1))),0,0.001);
 
     if(texture2D(light.tex_depth,frag_shadow_position.xy).z < frag_shadow_position.z - bias)
-        gl_FragColor = vec4(0);
+        gl_FragColor = (diffuse + specular) * attenuation * 0.2;
     else
-        gl_FragColor = (diffuse + specular);
+        gl_FragColor = (diffuse + specular) * attenuation;
 }

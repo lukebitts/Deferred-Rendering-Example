@@ -19,11 +19,12 @@
 #endif
 
 class Mesh;
-class Texture2D;
 class Program;
 
 #include "glm/glm.hpp"
 #include "glm/gtx/quaternion.hpp"
+#include "Framebuffer.hpp"
+#include "Texture2D.hpp"
 
 namespace extras
 {
@@ -58,15 +59,20 @@ struct DeferredModel
 
 struct IDeferredLight
 {
-	virtual void shader_constants(glm::mat4 view, glm::mat4 projection, Program* p = nullptr) = 0;
-	virtual const Program& program() = 0;
-	virtual const std::unique_ptr<Mesh>& mesh() = 0;
+	virtual void shader_constants(glm::mat4 view, glm::mat4 projection, Program* p = nullptr) const = 0;
+	virtual const Program& program() const = 0;
+	virtual const std::unique_ptr<Mesh>& mesh() const = 0;
 	virtual ~IDeferredLight(){}
 };
 
-struct ShadowCastingDeferredLight : public IDeferredLight
+struct ShadowCastingLight : public IDeferredLight
 {
-	bool casts_shadow;
+	ShadowCastingLight();
+	virtual bool casts_shadow() const = 0;
+	virtual glm::mat4 mvp() const = 0;
+	private:
+		Texture2D _textures[2];
+		Framebuffer _fb;
 };
 
 struct PointLight : public IDeferredLight
@@ -75,10 +81,10 @@ struct PointLight : public IDeferredLight
 	glm::vec3 color;
 	float power;
 	float max_distance;
-	void shader_constants(glm::mat4 view, glm::mat4 projection, Program* p = nullptr) override;
+	void shader_constants(glm::mat4 view, glm::mat4 projection, Program* p = nullptr) const override;
 	PointLight(glm::vec3 position, glm::vec3 color, float power, float max_distance);
-	const Program& program() override;
-	const std::unique_ptr<Mesh>& mesh() override;
+	const Program& program() const override;
+	const std::unique_ptr<Mesh>& mesh() const override;
 };
 
 struct SpotLight : public IDeferredLight
@@ -90,13 +96,13 @@ struct SpotLight : public IDeferredLight
 	float height;
 	float radius;
 	float falloff;
-	void shader_constants(glm::mat4 view, glm::mat4 projection, Program* p = nullptr) override;
+	void shader_constants(glm::mat4 view, glm::mat4 projection, Program* p = nullptr) const override;
 	SpotLight(glm::vec3 position, glm::vec3 color, glm::vec3 rotation, float power, float height, float radius, float falloff);
-	const Program& program() override;
-	const std::unique_ptr<Mesh>& mesh() override;
+	const Program& program() const override;
+	const std::unique_ptr<Mesh>& mesh() const override;
 };
 
-void drawTexturedQuadToScreen(glm::vec2 position, glm::vec2 size, GLuint tex_id);
+void drawTexturedQuadToScreen(glm::vec2 position, glm::vec2 size, glm::vec2 win_size, GLuint tex_id);
 
 }
 
