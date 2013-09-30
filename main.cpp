@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 Lucas Bittencourt. All rights reserved.
 //
 
-const int WIN_W = 1024;
-const int WIN_H = 768;
+const int WIN_W = 1080;
+const int WIN_H = 1080;
 
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glfw.h>
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 	glfwOpenWindow(WIN_W, WIN_H, 0, 0, 0, 0, 24, 8, GLFW_WINDOW);
 	glfwSwapInterval(1);
 
-	glfwSetWindowPos(2000, 0);
+	//glfwSetWindowPos(2000, 0);
 
 	glfwSetKeyCallback([](int key, int press) -> void {
 		extern bool wireframe;
@@ -77,14 +77,14 @@ int main(int argc, char* argv[])
 		if(key == 'W' && press)
 			wireframe = !wireframe;
 	});
-	
+
 	Framebuffer first_pass_fbo{
-		{GL_COLOR_ATTACHMENT0_EXT, Texture2D{0, GL_RGBA8,  WIN_W, WIN_H, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}},
-		{GL_COLOR_ATTACHMENT1_EXT, Texture2D{0, GL_RGBA32F_ARB,  WIN_W, WIN_H, 0, GL_RGBA, GL_FLOAT, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}},
-		{GL_COLOR_ATTACHMENT2_EXT, Texture2D{0, GL_RGBA16F_ARB,  WIN_W, WIN_H, 0, GL_RGBA, GL_FLOAT, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}},
-		{GL_COLOR_ATTACHMENT3_EXT, Texture2D{0, GL_RGB8,  WIN_W, WIN_H, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}},
+		std::make_tuple(GL_COLOR_ATTACHMENT0_EXT, Texture2D{0, GL_RGBA8,  WIN_W, WIN_H, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}),
+		std::make_tuple(GL_COLOR_ATTACHMENT1_EXT, Texture2D{0, GL_RGBA32F_ARB,  WIN_W, WIN_H, 0, GL_RGBA, GL_FLOAT, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}),
+		std::make_tuple(GL_COLOR_ATTACHMENT2_EXT, Texture2D{0, GL_RGBA16F_ARB,  WIN_W, WIN_H, 0, GL_RGBA, GL_FLOAT, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}),
+		std::make_tuple(GL_COLOR_ATTACHMENT3_EXT, Texture2D{0, GL_RGB8,  WIN_W, WIN_H, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}),
 		///@todo check if this format matches the default buffer format
-		{GL_DEPTH_ATTACHMENT_EXT, Texture2D{0, GL_DEPTH24_STENCIL8,  WIN_W, WIN_H, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}}}
+		std::make_tuple(GL_DEPTH_ATTACHMENT_EXT, Texture2D{0, GL_DEPTH24_STENCIL8,  WIN_W, WIN_H, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL, {{GL_TEXTURE_MIN_FILTER,GL_LINEAR}}})
 	};
 
 	GLuint light_fbo;
@@ -112,91 +112,91 @@ int main(int argc, char* argv[])
 	/*******/
 
 	std::vector<extras::DeferredModel> models;
-	
+
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/brick.obj"),
 		extras::texture2d_from_file("assets/textures/scene/brick_color.png"),
-		extras::texture2d_from_file("assets/textures/flat_normal.png"),
-		//extras::texture2d_from_color(128, 128, 255, 255),
+		//extras::texture2d_from_file("assets/textures/flat_normal.png"),
+		extras::texture2d_from_color(128, 128, 255, 255),
 		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/brick2.obj"),
 		extras::texture2d_from_file("assets/textures/scene/brick_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/concrete.obj"),
 		extras::texture2d_from_file("assets/textures/scene/concrete_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/concrete2.obj"),
 		extras::texture2d_from_file("assets/textures/scene/concrete_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/concrete3.obj"),
 		extras::texture2d_from_file("assets/textures/scene/concrete_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/concrete4.obj"),
 		extras::texture2d_from_file("assets/textures/scene/concrete_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/detail.obj"),
 		extras::texture2d_from_file("assets/textures/scene/detail_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/detail2.obj"),
 		extras::texture2d_from_file("assets/textures/scene/detail_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/floor.obj"),
 		extras::texture2d_from_file("assets/textures/scene/floor_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
+		extras::texture2d_from_color(128, 128, 255, 255),
 		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	/*models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/grass1.obj"),
 		extras::texture2d_from_file("assets/textures/scene/grass1_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/grass2.obj"),
 		extras::texture2d_from_file("assets/textures/scene/grass2_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);*/
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/metal.obj"),
 		extras::texture2d_from_file("assets/textures/scene/metal_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/wood.obj"),
 		extras::texture2d_from_file("assets/textures/scene/wood_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 	models.emplace_back(
 		extras::mesh_from_file("assets/models/scene/wood2.obj"),
 		extras::texture2d_from_file("assets/textures/scene/wood_color.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_normal.png"),
-		extras::texture2d_from_file("assets/textures/chesterfield_specular.png")
+		extras::texture2d_from_color(128, 128, 255, 255),
+		extras::texture2d_from_color(0, 0, 0, 0)
 	);
 
 	/*models.emplace_back(
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 	//lights.emplace_back(new extras::SpotLight{glm::vec3(0,5.0,0), glm::vec3(1), glm::vec3(0,0,0), 1.f, 5.f, 1.f, 45.f});
 	//glm::vec3 position, glm::vec3 color, glm::vec3 rotation, float power, float height, float radius, float falloff
 
-	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(-3.f,6.5,0), glm::vec3(1,1,1), glm::vec3(0,0,20.f), 2.f, 45.f, 35.f, 32.f};
+	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(-3.f,6.5,0), glm::vec3(1,1,1), glm::vec3(0,0,20.f), 2.f, 25.f, 35.f, 32.f};
 
 	Program deferred_first_pass_shader(deferred_first_pass_vs,deferred_first_pass_fs);
 	Program framebuffer_texture_shader(framebuffer_texture_vs,framebuffer_texture_fs);
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
 
 	glm::mat4 mat_projection = glm::perspective(75.f, (float)WIN_W / (float)WIN_H, 0.1f, 100.f);
 	glm::mat4 mat_view(1);
-	
+
 	int frame = 0;
 	int realFrame = 0;
 	double accum = 0;
@@ -513,7 +513,7 @@ int main(int argc, char* argv[])
 		glDisable(GL_BLEND);
 		glDisable(GL_STENCIL_TEST);
 
-		extras::drawTexturedQuadToScreen(glm::vec2(0,150), glm::vec2(200,150), glm::vec2(WIN_W,WIN_H), light_img.id);
+		extras::drawTexturedQuadToScreen(glm::vec2(0,300), glm::vec2(400,300), glm::vec2(WIN_W,WIN_H), light_img.id);
 		//extras::drawTexturedQuadToScreen(glm::vec2(400,600), glm::vec2(400,300), imgs[4].id);
 
         //fifth pass (geometry edges)
@@ -603,24 +603,31 @@ int oldx = 400;
 
 void computeMatricesFromInputs(glm::mat4& ProjectionMatrix, glm::mat4& ViewMatrix){
         static double lastTime = glfwGetTime();
-		
+
         double currentTime = glfwGetTime();
         float deltaTime = float(currentTime - lastTime);
 
         int xpos, ypos;
         glfwGetMousePos(&xpos, &ypos);
 
+        //horizontalAngle = mouseSpeed * float((float)WIN_W/2 - xpos);
+        //verticalAngle = mouseSpeed * float((float)WIN_H/2 - ypos);
+
+        #ifndef __APPLE__
+        glfwSetMousePos(WIN_W/2, WIN_H/2);
+        horizontalAngle += mouseSpeed * float((float)WIN_W/2 - xpos);
+        verticalAngle += mouseSpeed * float((float)WIN_H/2 - ypos);
+        #else
         horizontalAngle = mouseSpeed * float((float)WIN_W/2 - xpos);
         verticalAngle = mouseSpeed * float((float)WIN_H/2 - ypos);
-		
-		//glfwSetMousePos(800/2, 600/2);
-		
+        #endif
+
         glm::vec3 direction(
                 cosf(verticalAngle) * sinf(horizontalAngle),
                 sinf(verticalAngle),
                 cosf(verticalAngle) * cosf(horizontalAngle)
         );
-    
+
         glm::vec3 right = glm::vec3(sin(horizontalAngle - 3.14f/2.0f), 0, cos(horizontalAngle - 3.14f/2.0f));
         glm::vec3 up = glm::cross(right, direction);
 

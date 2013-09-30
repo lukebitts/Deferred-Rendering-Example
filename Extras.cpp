@@ -6,13 +6,16 @@
 #include <fstream>
 #include <exception>
 
-/*#include <assimp/scene.h>
+#ifndef __APPLE__
+#include <assimp/scene.h>
 #include <assimp/cimport.h>
-#include <assimp/postprocess.h>*/
-
+#include <assimp/postprocess.h>
+#else
 #include <assimp/assimp.h>
 #include <assimp/aiScene.h>
 #include <assimp/aiPostProcess.h>
+#endif
+
 #include "lodepng/lodepng.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -332,7 +335,7 @@ void extras::SpotLight::shader_constants(glm::mat4 view, glm::mat4 projection, P
 	mat_model = glm::rotate(mat_model, rotation.x, glm::vec3(1,0,0));
 	mat_model = glm::rotate(mat_model, rotation.y, glm::vec3(0,1,0));
 	mat_model = glm::rotate(mat_model, rotation.z, glm::vec3(0,0,1));
-	mat_model = glm::scale(mat_model, glm::vec3(height*tanf(radius*3.14/180)+1,height,height*tanf(radius*3.14/180)+1));
+	mat_model = glm::scale(mat_model, glm::vec3((height+height*0.05)*tanf((radius+radius*0.05)*3.14/180),height,(height+height*0.05)*tanf((radius+radius*0.05)*3.14/180)));
 
 	if(p)
 	{

@@ -59,7 +59,7 @@ void main(void)
 
     vec4 frag_shadow_position = light.projection * light.view * frag_position;
     frag_shadow_position = frag_shadow_position / frag_shadow_position.w / 2.f + 0.5f;
-	
+
 	float frag_distance = length(light.position - frag_position.xyz);
 	float C = 1.;
     float L = 4.5/light.height;
@@ -72,7 +72,7 @@ void main(void)
     float bias = 0;//clamp(0.005*tan(acos(clamp(dot(n,l),0,1))),0,0.001);
 
     if(texture2D(light.tex_depth,frag_shadow_position.xy).z < frag_shadow_position.z - bias)
-        gl_FragColor = (diffuse + specular) * attenuation * 0.2;
+        gl_FragColor = vec4(0);//(diffuse + specular) * attenuation * 0.2;
     else
         gl_FragColor = (diffuse + specular) * attenuation;
 }
