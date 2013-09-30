@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 Lucas Bittencourt. All rights reserved.
 //
 
-const int WIN_W = 1024;
-const int WIN_H = 768;
+const int WIN_W = 1900;
+const int WIN_H = 1080;
 
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glfw.h>
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 	//lights.emplace_back(new extras::SpotLight{glm::vec3(0,5.0,0), glm::vec3(1), glm::vec3(0,0,0), 1.f, 5.f, 1.f, 45.f});
 	//glm::vec3 position, glm::vec3 color, glm::vec3 rotation, float power, float height, float radius, float falloff
 
-	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(-3.f,6.5,0), glm::vec3(1,1,1), glm::vec3(0,0,20.f), 2.f, 45.f, 35.f, 32.f};
+	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(-3.f,6.5,0), glm::vec3(0.3,0.3,0.4), glm::vec3(0,0,20.f), 2.f, 45.f, 35.f, 32.f};
 
 	Program deferred_first_pass_shader(deferred_first_pass_vs,deferred_first_pass_fs);
 	Program framebuffer_texture_shader(framebuffer_texture_vs,framebuffer_texture_fs);

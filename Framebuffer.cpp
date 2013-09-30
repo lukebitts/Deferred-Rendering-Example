@@ -12,7 +12,7 @@ Framebuffer::Framebuffer(std::initializer_list<std::tuple<GLenum, Texture2D>> te
 	
 	for(auto& texture : textures)
 	{
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, std::get<0>(texture), GL_TEXTURE_2D, std::get<1>(texture).id, 0);
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, std::get<0>(texture), GL_TEXTURE_2D, std::get<1>(texture).id(), 0);
 		//todo: remove this const_cast
 		_textures.push_back(const_cast<Texture2D&&>(std::get<1>(texture)));
 	}

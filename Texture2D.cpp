@@ -11,10 +11,10 @@
 #include "GLErrors.hpp"
 
 Texture2D::Texture2D(GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid * data,
-	std::initializer_list<std::pair<GLenum,GLint>> parametersi) : id(0)
+	std::initializer_list<std::pair<GLenum,GLint>> parametersi) : _id(0)
 {
-	glGenTextures(1, &id);
-	glBindTexture(GL_TEXTURE_2D, id);
+	glGenTextures(1, &_id);
+	glBindTexture(GL_TEXTURE_2D, _id);
 	
 	for(auto&& p : parametersi)
 		glTexParameteri(GL_TEXTURE_2D, p.first, p.second);
@@ -26,19 +26,24 @@ Texture2D::Texture2D(GLint level, GLint internalFormat, GLsizei width, GLsizei h
 
 Texture2D::Texture2D(Texture2D&& other)
 {
-	this->id = other.id;
-	other.id = 0;
+	this->_id = other._id;
+	other._id = 0;
 }
 
 Texture2D& Texture2D::operator=(Texture2D&& other)
 {
-	this->id = other.id;
-	other.id = 0;
+	this->_id = other._id;
+	other._id = 0;
 	
 	return *this;
 }
 
+GLuint Texture2D::id() const
+{
+	return _id;
+}
+
 Texture2D::~Texture2D()
 {
-	glDeleteTextures(1, &id);
+	glDeleteTextures(1, &_id);
 }
