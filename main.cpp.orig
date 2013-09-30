@@ -6,7 +6,11 @@
 //  Copyright (c) 2013 Lucas Bittencourt. All rights reserved.
 //
 
+<<<<<<< HEAD
+const int WIN_W = 1900;
+=======
 const int WIN_W = 1080;
+>>>>>>> 8cabd5cb6beb3ce9d57b60204822ff4196c70b8a
 const int WIN_H = 1080;
 
 #define GL_GLEXT_PROTOTYPES
@@ -69,9 +73,7 @@ int main(int argc, char* argv[])
 	glfwOpenWindow(WIN_W, WIN_H, 0, 0, 0, 0, 24, 8, GLFW_WINDOW);
 	glfwSwapInterval(1);
 
-	#ifdef __APPLE__
-	glfwSetWindowPos(2000, 0);
-	#endif
+	//glfwSetWindowPos(2000, 0);
 
 	glfwSetKeyCallback([](int key, int press) -> void {
 		extern bool wireframe;
@@ -96,8 +98,8 @@ int main(int argc, char* argv[])
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, light_fbo);
 
     {
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, lightcolor_img.id(), 0);
-        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT , GL_TEXTURE_2D, light_img.id(), 0);
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, lightcolor_img.id, 0);
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT , GL_TEXTURE_2D, light_img.id, 0);
 
 		glDrawBuffer(GL_NONE);
 
@@ -220,7 +222,11 @@ int main(int argc, char* argv[])
 	//lights.emplace_back(new extras::SpotLight{glm::vec3(0,5.0,0), glm::vec3(1), glm::vec3(0,0,0), 1.f, 5.f, 1.f, 45.f});
 	//glm::vec3 position, glm::vec3 color, glm::vec3 rotation, float power, float height, float radius, float falloff
 
+<<<<<<< HEAD
+	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(-3.f,6.5,0), glm::vec3(0.3,0.3,0.4), glm::vec3(0,0,20.f), 2.f, 45.f, 35.f, 32.f};
+=======
 	extras::SpotLight* spot = new extras::SpotLight{glm::vec3(-3.f,6.5,0), glm::vec3(1,1,1), glm::vec3(0,0,20.f), 2.f, 25.f, 35.f, 32.f};
+>>>>>>> 8cabd5cb6beb3ce9d57b60204822ff4196c70b8a
 
 	Program deferred_first_pass_shader(deferred_first_pass_vs,deferred_first_pass_fs);
 	Program framebuffer_texture_shader(framebuffer_texture_vs,framebuffer_texture_fs);
@@ -291,15 +297,15 @@ int main(int argc, char* argv[])
             glUniformMatrix3fv(glGetUniformLocation(p->id(),"model3x3"), 1, GL_FALSE, glm::value_ptr(model3x3));
 
 			glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, model.color->id());
+            glBindTexture(GL_TEXTURE_2D, model.color->id);
             glUniform1i(glGetUniformLocation(p->id(),"diffuse_map"),0);
 
 			glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, model.normal->id());
+            glBindTexture(GL_TEXTURE_2D, model.normal->id);
             glUniform1i(glGetUniformLocation(p->id(),"normal_map"),1);
 
 			glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, model.specular->id());
+            glBindTexture(GL_TEXTURE_2D, model.specular->id);
             glUniform1i(glGetUniformLocation(p->id(),"specular_map"),2);
 
             glEnableVertexAttribArray(glGetAttribLocation(p->id(), "position"));
@@ -416,23 +422,23 @@ int main(int argc, char* argv[])
 			glUniform1i(glGetUniformLocation(p->id(), "window_height"),WIN_H);
 
 			glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(0).id());
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(0).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_color"),0);
 
 			glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(1).id());
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(1).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_position"),1);
 
 			glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(2).id());
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(2).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_normal"),2);
 
 			glActiveTexture(GL_TEXTURE3);
-            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(3).id());
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(3).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_specular"),3);
 
 			glActiveTexture(GL_TEXTURE4);
-            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(4).id());
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(4).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_depth"),4);
 
 			glUniform3f(glGetUniformLocation(p->id(), "camera.position"), cam_pos.x, cam_pos.y, cam_pos.z);
@@ -462,28 +468,28 @@ int main(int argc, char* argv[])
 			glUniform1i(glGetUniformLocation(p->id(), "window_height"),WIN_H);
 
 			glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(0).id());
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(0).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_color"),0);
 
 			glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(1).id());
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(1).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_position"),1);
 
 			glActiveTexture(GL_TEXTURE2);
-            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(2).id());
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(2).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_normal"),2);
 
 			glActiveTexture(GL_TEXTURE3);
-            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(3).id());
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(3).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_specular"),3);
 
 			glActiveTexture(GL_TEXTURE4);
-            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(4).id());
+            glBindTexture(GL_TEXTURE_2D, first_pass_fbo.texture(4).id);
             glUniform1i(glGetUniformLocation(p->id(),"tex_depth"),4);
 
 			//The shader should receive the depth map from the prev pass and the mvp used
 			glActiveTexture(GL_TEXTURE5);
-            glBindTexture(GL_TEXTURE_2D, light_img.id());
+            glBindTexture(GL_TEXTURE_2D, light_img.id);
             glUniform1i(glGetUniformLocation(p->id(),"light.tex_depth"),5);
 
 			glUniformMatrix4fv(glGetUniformLocation(p->id(),"light.projection"), 1, GL_FALSE, glm::value_ptr(mat_light_projection));
@@ -515,7 +521,7 @@ int main(int argc, char* argv[])
 		glDisable(GL_BLEND);
 		glDisable(GL_STENCIL_TEST);
 
-		extras::drawTexturedQuadToScreen(glm::vec2(0,300), glm::vec2(400,300), glm::vec2(WIN_W,WIN_H), light_img.id());
+		extras::drawTexturedQuadToScreen(glm::vec2(0,300), glm::vec2(400,300), glm::vec2(WIN_W,WIN_H), light_img.id);
 		//extras::drawTexturedQuadToScreen(glm::vec2(400,600), glm::vec2(400,300), imgs[4].id);
 
         //fifth pass (geometry edges)

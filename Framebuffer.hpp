@@ -15,9 +15,8 @@
 	#include <GL/gl.h>
 #endif
 
-#include "GLErrors.hpp"
-
 #include <vector>
+#include <tuple>
 
 class Texture2D;
 

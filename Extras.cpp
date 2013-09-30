@@ -6,13 +6,16 @@
 #include <fstream>
 #include <exception>
 
-/*#include <assimp/scene.h>
+#ifndef __APPLE__
+#include <assimp/scene.h>
 #include <assimp/cimport.h>
-#include <assimp/postprocess.h>*/
-
+#include <assimp/postprocess.h>
+#else
 #include <assimp/assimp.h>
 #include <assimp/aiScene.h>
 #include <assimp/aiPostProcess.h>
+#endif
+
 #include "lodepng/lodepng.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
